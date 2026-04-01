@@ -1,3 +1,4 @@
+# Copyright 2026 David Mitchell <git@themitchells.org>
 [Unit]
 Description=Run network stats collector every 2 minutes
 Requires=network-collector.service

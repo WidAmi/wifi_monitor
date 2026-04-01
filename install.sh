@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright 2026 David Mitchell <git@themitchells.org>
 set -e
 
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

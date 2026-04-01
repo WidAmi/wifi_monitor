@@ -1,3 +1,4 @@
+# Copyright 2026 David Mitchell <git@themitchells.org>
 [Unit]
 Description=Collect WiFi and wired port stats from Orbi APs into InfluxDB
 After=network-online.target

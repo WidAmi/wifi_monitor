@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright 2026 David Mitchell <git@themitchells.org>
 """
 Collect WiFi client, mesh peer, and wired port stats from OpenWRT APs.
 Writes metrics to InfluxDB. Run as a systemd oneshot via network-collector.timer.

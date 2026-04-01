@@ -69,3 +69,7 @@ Access at `http://localhost:3000` (user: `admin`, password from `.env`).
 systemctl list-timers network-collector.timer
 journalctl -u network-collector.service -f
 ```
+
+---
+
+Copyright 2026 David Mitchell <git@themitchells.org>
