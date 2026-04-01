@@ -51,13 +51,27 @@ AP hostnames are resolved as `{name}.home.arpa`. If your local domain differs, u
 
 ## Grafana dashboards
 
-Provisioned automatically at startup:
+Provisioned automatically at startup. Access at `http://localhost:3000` (user: `admin`, password from `.env`).
 
-- **WiFi Overview** — client counts by band, signal, mesh health, wired traffic
-- **Orbi Detail** — per-AP mesh throughput and wired port stats
-- **Client Detail** — per-client signal and throughput over time, shows roaming
+### WiFi Overview
 
-Access at `http://localhost:3000` (user: `admin`, password from `.env`).
+Client counts by band, station signal and data rates, mesh peer signal and airtime, wired port traffic.
+
+![WiFi Overview](screenshots/wifi-overview-1.png)
+![WiFi Overview (cont.)](screenshots/wifi-overview-2.png)
+
+### Orbi Detail
+
+Per-AP view with mesh throughput and link rate per peer, plus all wired port traffic.
+
+![Orbi Detail](screenshots/orbi-detail-1.png)
+![Orbi Detail (cont.)](screenshots/orbi-detail-2.png)
+
+### Client Detail
+
+Per-client signal strength and throughput over time. AP and band shown in the series label — roaming is visible as the label changes.
+
+![Client Detail](screenshots/client-detail.png)
 
 ## Systemd timers
 
