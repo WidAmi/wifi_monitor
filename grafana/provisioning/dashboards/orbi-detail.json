@@ -1,0 +1,392 @@
+{
+  "title": "Orbi Detail",
+  "uid": "orbi-detail",
+  "description": "Per-AP mesh link and wired port stats",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "graphTooltip": 1,
+  "tags": [
+    "network",
+    "wifi"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "ap",
+        "label": "Orbi",
+        "type": "query",
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"netstats\", tag: \"ap\", predicate: (r) => r._measurement == \"wifi_clients\")",
+        "hide": 0,
+        "multi": false,
+        "includeAll": false,
+        "refresh": 2,
+        "datasource": {
+          "type": "influxdb",
+          "uid": "influxdb"
+        },
+        "sort": 1
+      },
+      {
+        "name": "peer_ap",
+        "label": "Mesh Peer",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "influxdb"
+        },
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"netstats\", tag: \"peer_ap\", predicate: (r) => r._measurement == \"mesh_peer\" and r.ap == \"${ap}\")",
+        "refresh": 2,
+        "hide": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Mesh Throughput \u2014 $peer_ap",
+      "description": "Actual bytes transferred per second to/from this mesh peer",
+      "type": "timeseries",
+      "repeat": "peer_ap",
+      "repeatDirection": "v",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "tx.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mesh_peer\")\n  |> filter(fn: (r) => r.ap == \"${ap}\" and r.peer_ap == \"${peer_ap}\")\n  |> filter(fn: (r) => r._field == \"tx_bytes\" or r._field == \"rx_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 8.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Mesh Link Rate \u2014 $peer_ap",
+      "description": "PHY-layer TX and RX rates reported by iw for this mesh peer",
+      "type": "timeseries",
+      "repeat": "peer_ap",
+      "repeatDirection": "v",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Mbps",
+          "min": 0,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mesh_peer\")\n  |> filter(fn: (r) => r.ap == \"${ap}\" and r.peer_ap == \"${peer_ap}\")\n  |> filter(fn: (r) => r._field == \"tx_rate_mbps\" or r._field == \"rx_rate_mbps\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Wired Port \u2014 wan",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "tx.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"wired_port\" and r.ap == \"${ap}\" and r.port == \"wan\")\n  |> filter(fn: (r) => r._field == \"rx_bytes\" or r._field == \"tx_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 8.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Wired Port \u2014 lan1",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "tx.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"wired_port\" and r.ap == \"${ap}\" and r.port == \"lan1\")\n  |> filter(fn: (r) => r._field == \"rx_bytes\" or r._field == \"tx_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 8.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Wired Port \u2014 lan2",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "tx.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"wired_port\" and r.ap == \"${ap}\" and r.port == \"lan2\")\n  |> filter(fn: (r) => r._field == \"rx_bytes\" or r._field == \"tx_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 8.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Wired Port \u2014 lan3",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 33,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "tx.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "query": "from(bucket: \"netstats\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"wired_port\" and r.ap == \"${ap}\" and r.port == \"lan3\")\n  |> filter(fn: (r) => r._field == \"rx_bytes\" or r._field == \"tx_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> map(fn: (r) => ({r with _value: r._value * 8.0}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    }
+  ]
+}

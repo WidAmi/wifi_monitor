@@ -1,0 +1,8 @@
+.env
+config.yaml
+venv/
+*.config
+*.config.bak
+output1
+__pycache__/
+*.pyc

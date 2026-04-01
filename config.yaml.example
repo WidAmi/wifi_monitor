@@ -1,0 +1,15 @@
+aps:
+  - orbi1
+  - orbi2
+  - orbi3
+  - orbi4
+
+ssh:
+  user: root
+  key: /home/youruser/.ssh/network_monitor
+  timeout: 10
+
+influxdb:
+  url: http://localhost:8086
+  org: YourOrg
+  bucket: netstats
